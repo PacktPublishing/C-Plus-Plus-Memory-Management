@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/QFsK1GABz9iO39Ih
+// also available live: https://wandbox.org/permlink/y7EhCe2koE3sjtxH
 
 struct B0 {
    virtual int f() const = 0;
@@ -26,12 +26,17 @@ int g(D0 &d0) {
    D1 &d1 = dynamic_cast<D1&>(d0); // throws if wrong
    return d1.g();
 }
+#include <iostream>
 int main() {
    D d;
    f(&d); // Ok
    g(d); // Ok, a D is a D0
    D0 d0;
    // calls f(nullptr) as &d0 does not point to a D
-   f(dynamic_cast<D*>(&d0));
-   g(d0); // compiles but will throw bad_cast
+   std::cout << f(dynamic_cast<D*>(&d0)) << '\n'; // -1
+   try {
+      g(d0); // compiles but will throw bad_cast
+   } catch(std::bad_cast&) {
+      std::cerr << "Nice try\n";
+   }
 }
