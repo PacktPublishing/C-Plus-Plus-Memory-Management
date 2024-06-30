@@ -1,7 +1,6 @@
 // also available live: https://wandbox.org/permlink/sf43YYRKu60rx49p
 
 #include <iostream>
-#include <iostream>
 struct Base {
     ~Base() { std::cout << "~Base()\n"; }
 };
