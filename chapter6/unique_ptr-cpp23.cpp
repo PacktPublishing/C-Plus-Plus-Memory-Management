@@ -1,0 +1,188 @@
+// also available live: https://wandbox.org/permlink/sezRjKjLz5EpX8AR
+
+#include <iostream>
+#include <type_traits>
+#include <utility>
+
+namespace managing_memory_book {
+   // basic deleter types
+   template <class T>
+   struct deleter_pointer_wrapper {
+      void (*pf)(T*);
+      deleter_pointer_wrapper(void (*pf)(T*)) : pf{ pf } {
+      }
+      void operator()(T* p) const {
+         std::cout << "pf(p)\n";
+         pf(p);
+      }
+   };
+   template <class T>
+   struct default_deleter {
+      void operator()(T* p) const {
+         std::cout << "delete p\n";
+         delete p;
+      }
+   };
+   template <class T>
+   struct default_deleter<T[]> {
+      void operator()(T* p) const {
+         std::cout << "delete [] p\n";
+         delete[] p;
+      }
+   };
+   template <class T>
+   struct is_deleter_function_candidate : std::false_type {}
+   ;
+   template <class T>
+   struct is_deleter_function_candidate<void (*)(T*)> : std::true_type {}
+   ;
+   template <class T>
+   constexpr auto is_deleter_function_candidate_v =
+      is_deleter_function_candidate<T>::value;
+   // unique_ptr general template
+   template <class T, class D = default_deleter<T>>
+   class unique_ptr : std::conditional_t <
+      is_deleter_function_candidate_v<D>,
+      deleter_pointer_wrapper<T>,
+      D
+   > {
+      using deleter_type = std::conditional_t <
+         is_deleter_function_candidate_v<D>,
+         deleter_pointer_wrapper<T>,
+         D
+      >;
+      T* p = nullptr;
+   public:
+      unique_ptr() = default;
+      unique_ptr(T* p) : p{ p } {
+         std::cout << "general template\n";
+      }
+      unique_ptr(T* p, void (*pf)(T*))
+         : deleter_type{ pf }, p{ p } {
+         std::cout << "specialization for function pointer\n";
+      }
+      ~unique_ptr() {
+         (*static_cast<deleter_type*>(this))(p);
+      }
+      unique_ptr(const unique_ptr&) = delete;
+      unique_ptr& operator=(const unique_ptr&) = delete;
+      void swap(unique_ptr &other) noexcept {
+         using std::swap;
+         swap(p, other.p);
+      }
+      unique_ptr(unique_ptr &&other) noexcept
+         : p{ std::exchange(other.p, nullptr) } {
+      }
+      unique_ptr& operator=(unique_ptr &&other) noexcept {
+         unique_ptr{ std::move(other) }.swap(*this);
+         return *this;
+      }
+      bool empty() const noexcept { return !p; }
+      operator bool() const noexcept { return !empty(); }
+      bool operator==(const unique_ptr &other) const noexcept {
+         return p == other.p;
+      }
+      // inferred from operator==() since C++20
+      bool operator!=(const unique_ptr &other) const noexcept {
+         return !(*this == other);
+      }
+// BEFORE C++23
+/*
+      T *get() noexcept { return p; }
+      const T *get() const noexcept { return p; }
+      T& operator*() noexcept { return *p; }
+      const T& operator*() const noexcept { return *p; }
+      T* operator->() noexcept { return p; }
+      const T* operator->() const noexcept { return p; }
+*/
+// SINCE C++23
+      template <class U>
+         decltype(auto) get(this U && self) noexcept {
+            return self.p;
+         }
+      template <class U>
+         decltype(auto) operator*(this U && self) noexcept {
+            return *(self.p);
+         }
+      template <class U>
+         decltype(auto) operator->(this U && self) noexcept {
+            return self.p;
+         }
+   };
+   // unique_ptr specialization for arrays
+   template <class T, class D>
+   class unique_ptr<T[], D> : std::conditional_t <
+      is_deleter_function_candidate_v<D>,
+      deleter_pointer_wrapper<T>,
+      D
+   > {
+      using deleter_type = std::conditional_t <
+         is_deleter_function_candidate_v<D>,
+         deleter_pointer_wrapper<T>,
+         D
+      >;
+      T* p = nullptr;
+   public:
+      unique_ptr() = default;
+      unique_ptr(T* p) : p{ p } {
+         std::cout << "specialization for arrays\n";
+      }
+      unique_ptr(T* p, void (*pf)(T*))
+         : deleter_type{ pf }, p{ p } {
+         std::cout << "specialization for arrays with function pointer\n";
+      }
+      ~unique_ptr() {
+         (*static_cast<deleter_type*>(this))(p);
+      }
+      unique_ptr(const unique_ptr&) = delete;
+      unique_ptr& operator=(const unique_ptr&) = delete;
+      void swap(unique_ptr &other) noexcept {
+         using std::swap;
+         swap(p, other.p);
+      }
+      unique_ptr(unique_ptr &&other) noexcept
+         : p{ std::exchange(other.p, nullptr) } {
+      }
+      unique_ptr& operator=(unique_ptr &&other) noexcept {
+         unique_ptr{ std::move(other) }.swap(*this);
+         return *this;
+      }
+      bool empty() const noexcept { return !p; }
+      operator bool() const noexcept { return !empty(); }
+      bool operator==(const unique_ptr &other) const noexcept {
+         return p == other.p;
+      }
+      // inferred from operator==() since C++20
+      bool operator!=(const unique_ptr &other) const noexcept {
+         return !(*this == other);
+      }
+// BEFORE C++23
+/*
+      T *get() noexcept { return p; }
+      const T *get() const noexcept { return p; }
+      T& operator[](std::size_t n) noexcept { return p[n]; }
+      const T& operator[](std::size_t n) const noexcept { return p[n]; }
+*/
+// SINCE C++23
+      template <class U>
+         decltype(auto) get(this U && self) noexcept {
+            return self.p;
+         }
+      template <class U>
+         decltype(auto) operator[](this U && self, std::size_t n) noexcept {
+            return self.p[n];
+         }
+   };
+}
+
+void end_of_life(int*) {}
+int main() {
+   using managing_memory_book::unique_ptr;
+
+   [[maybe_unused]] unique_ptr<int> p0{ new int{ 3 } };
+   [[maybe_unused]] unique_ptr<int[]> p1{ new int[10] };
+   [[maybe_unused]] unique_ptr<int, void (*)(int*)> p2{ new int{ 4 }, end_of_life };
+   static_assert(sizeof p0 == sizeof(void*));
+   static_assert(sizeof p1 == sizeof(void*));
+   static_assert(sizeof p2 > sizeof(void*));
+}
