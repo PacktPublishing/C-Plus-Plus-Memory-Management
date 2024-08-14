@@ -10,9 +10,11 @@
 #include <cassert>
 #include <cstdlib>
 #include <mutex>
+#include <type_traits>
 
 template <class T, std::size_t N>
 class SizeBasedArena {
+   static_assert(std::is_final_v<T>);
    std::mutex m;
    char *p, *cur;
    SizeBasedArena()
@@ -63,7 +65,7 @@ public:
 #include <cstddef>
 #include <new>
 
-class Orc {
+class Orc final {
    char name[4]{ 'U', 'R', 'G' };
    int strength = 100;
    double smell = 1000.0;
