@@ -30,7 +30,7 @@ namespace growing_smart_pointer {
          virtual ~cloneable() = default;
       protected:
          cloneable() = default;
-         cloneable(const clonable&) = default;
+         cloneable(const cloneable&) = default;
       };
 
       //
