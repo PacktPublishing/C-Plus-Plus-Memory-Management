@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/NPo4KkdR5kijbybK
+// also available live: https://wandbox.org/permlink/rdfRiV0Vx9nX7ysE
 
 #include <cstddef>
 #include <algorithm>

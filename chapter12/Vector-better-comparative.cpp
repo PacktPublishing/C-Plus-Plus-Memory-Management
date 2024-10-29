@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/kKumgJTcmRlrHjhR
+// also available live: https://wandbox.org/permlink/u4poOOY4mARuoWxX
 
 #include <cstddef>
 #include <algorithm>
@@ -201,9 +201,11 @@ public:
          pos_ = std::next(begin(), index);
       }
       auto m = std::distance(std::next(pos_, n), end());
-      std::uninitialized_copy(pos_ + n, end(), pos_ + 2 * n + m);
-      std::uninitialized_copy(pos_ + n - m, pos_ + n, end());
-      std::copy_backward(pos_, pos + n - m, end());
+      if (m > 0) {
+         std::uninitialized_copy(pos_ + n, end(), end() + n - m);
+         std::uninitialized_copy(pos_ + m, pos_ + n, end());
+         std::copy_backward(pos_, pos_ + m, pos_ + n + m);
+      }
       std::copy(first, last, pos_);
       nelems += n;
       return pos_;
