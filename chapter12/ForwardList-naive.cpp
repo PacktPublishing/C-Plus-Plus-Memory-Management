@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/ZlAFIjEnewFsMJ2C
+// also available live: https://wandbox.org/permlink/OhcpjZ8tjJuxbBlt
 
 #include <cstddef>
 #include <algorithm>
@@ -19,14 +19,14 @@ public:
 private:
    struct Node {
       value_type value;
-      Node *next = nullptr;
-      Node(const_reference value) : value { value } {
+      Node* next = nullptr;
+      Node(const_reference value) : value{ value } {
       }
-      Node(value_type &&value) : value { std::move(value) } {
+      Node(value_type&& value) : value{ std::move(value) } {
       }
    };
-   Node *head {};
-   size_type nelems {};
+   Node* head{};
+   size_type nelems{};
    // ...
 public:
    size_type size() const { return nelems; }
@@ -41,11 +41,12 @@ private:
       using iterator_category = std::forward_iterator_tag;
       friend class Iterator<T>;
       friend class Iterator<const T>;
+      friend class ForwardList<T>;
    private:
-      Node *cur {};
+      Node* cur{};
    public:
       Iterator() = default;
-      Iterator(Node *p) : cur { p } {
+      Iterator(Node* p) : cur{ p } {
       }
       Iterator& operator++() {
          cur = cur->next;
@@ -56,11 +57,11 @@ private:
          operator++();
          return temp;
       }
-      bool operator==(const Iterator &other) const {
+      bool operator==(const Iterator& other) const {
          return cur == other.cur;
       }
       // not needed since C++20
-      bool operator!=(const Iterator &other) const {
+      bool operator!=(const Iterator& other) const {
          return !(*this == other);
       }
       U& operator*() { return cur->value; }
@@ -78,7 +79,7 @@ public:
    const_iterator end() const { return {}; }
    const_iterator cend() const { return end(); }
    void clear() noexcept {
-      for(auto p = head; p; ) {
+      for (auto p = head; p; ) {
          auto q = p->next;
          delete p;
          p = q;
@@ -88,22 +89,23 @@ public:
    // ...
    ForwardList() = default;
    template <std::forward_iterator It>
-      ForwardList(It b, It e) {
-         if(b == e) return;
-         try {
-            head = new Node{ *b };
-            auto q = head;
+   ForwardList(It b, It e) {
+      if (b == e) return;
+      try {
+         head = new Node{ *b };
+         auto q = head;
+         ++nelems;
+         for (++b; b != e; ++b) {
+            q->next = new Node{ *b };
+            q = q->next;
             ++nelems;
-            for(++b; b != e; ++b) {
-               q->next = new Node{ *b };
-               q = q->next;
-               ++nelems;
-            }
-         } catch (...) {
-            clear();
-            throw;
          }
       }
+      catch (...) {
+         clear();
+         throw;
+      }
+   }
    ForwardList(const ForwardList& other)
       : ForwardList(other.begin(), other.end()) {
    }
@@ -112,7 +114,7 @@ public:
    }
    ForwardList(ForwardList&& other) noexcept
       : head{ std::exchange(other.head, nullptr) },
-        nelems{ std::exchange(other.nelems, 0) } {
+      nelems{ std::exchange(other.nelems, 0) } {
    }
    // ...
    // ...
@@ -136,12 +138,12 @@ public:
    // ...
    reference front() { return head->value; }
    const_reference front() const { return head->value; }
-   bool operator==(const ForwardList &other) const {
+   bool operator==(const ForwardList& other) const {
       return size() == other.size() &&
-             std::equal(begin(), end(), other.begin());
+         std::equal(begin(), end(), other.begin());
    }
    // can be omitted since C++20
-   bool operator!=(const ForwardList &other) const {
+   bool operator!=(const ForwardList& other) const {
       return !(*this == other);
    }
    // ...
@@ -166,11 +168,19 @@ public:
       return { p };
    }
    template <std::input_iterator It>
-      iterator insert_after(iterator pos, It b, It e) {
-         for(; b != e; ++b)
-            pos = insert_after(pos, *b);
-         return pos;
-      }
+   iterator insert_after(iterator pos, It b, It e) {
+      for (; b != e; ++b)
+         pos = insert_after(pos, *b);
+      return pos;
+   }
+   iterator erase_after(iterator pos) {
+      if (pos == end() || std::next(pos) == end())
+         return end();
+      auto p = pos.cur->next->next;
+      delete pos.cur->next;
+      pos.cur->next = p;
+      return { p->next };
+   }
 };
 
 #include <iostream>
@@ -207,6 +217,11 @@ int main() {
    lst1.insert_after(pos, std::begin(arr), std::end(arr));
    // Size: 9
    // 2,-1,-2,-3,-4,3,5,7,11
+   std::cout << "Size: " << lst1.size() << '\n'
+             << lst1 << '\n';
+   lst1.erase_after(lst1.begin());
+   // Size: 8
+   // 2,-2,-3,-4,3,5,7,11
    std::cout << "Size: " << lst1.size() << '\n'
              << lst1 << '\n';
 }
