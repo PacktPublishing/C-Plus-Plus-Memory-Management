@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/obuBtRwDEqq79HgE
+// also available live: https://wandbox.org/permlink/IgNZDSneVX1f5iQw
 
 #include <cstddef>
 #include <algorithm>
@@ -207,6 +207,16 @@ public:
             pos = insert_after(pos, *b);
          return pos;
       }
+   iterator erase_after(iterator pos) {
+      if (pos == end() || std::next(pos) == end())
+         return end();
+      auto p = pos.cur->next->next;
+      std::allocator_traits<Alloc>::destroy(alloc, pos.cur->next);
+      std::allocator_traits<Alloc>::deallocate(alloc, pos.cur->next, 1);
+      --nelems;
+      pos.cur->next = p;
+      return { p->next };
+   }
 };
 
 #include <iostream>
@@ -244,6 +254,11 @@ template <template <class> class A>
       lst1.insert_after(pos, std::begin(arr), std::end(arr));
       // Size: 9
       // 2,-1,-2,-3,-4,3,5,7,11
+      std::cout << "Size: " << lst1.size() << '\n'
+                << lst1 << '\n';
+      lst1.erase_after(lst1.begin());
+      // Size: 8
+      // 2,-2,-3,-4,3,5,7,11
       std::cout << "Size: " << lst1.size() << '\n'
                 << lst1 << '\n';
    }
