@@ -1,11 +1,11 @@
-// also available live: https://wandbox.org/permlink/0HO29oq8jVfujy3m
+// also available live: https://wandbox.org/permlink/jbKBa0BQ0JhgDKXq
 
 #include <iostream>
 #include <cstdlib>
 #include <new>
 // for simplicity, we delegate from the
 // throwing versions to the nothrow ones
-void* operator new(std::size_t n, const std::nothrow_t&) {
+void* operator new(std::size_t n, const std::nothrow_t&) noexcept {
    return std::malloc(n);
 }
 void* operator new(std::size_t n) {
@@ -22,7 +22,7 @@ void operator delete(void* p) noexcept {
 void operator delete(void* p, std::size_t) noexcept {
    operator delete (p, std::nothrow);
 }
-void* operator new[](std::size_t n, const std::nothrow_t&) {
+void* operator new[](std::size_t n, const std::nothrow_t&) noexcept {
    return std::malloc(n);
 }
 void* operator new[](std::size_t n) {
