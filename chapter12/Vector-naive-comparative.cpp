@@ -132,7 +132,10 @@ template <class T>
       void grow() { resize(capacity()? capacity() * 2 : 16); }
    public:
       void resize(size_type new_cap) {
-         if(new_cap <= capacity()) return;
+         if (new_cap <= capacity()) {
+            nelems = new_cap;
+            return;
+         }
          auto p = new T[new_cap];
          if constexpr(std::is_nothrow_move_assignable_v<T>) {
             std::move(begin(), end(), p);         
