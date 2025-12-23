@@ -37,7 +37,7 @@ namespace managing_memory_book {
          if(ctr) {
             auto expected = ctr->load();
             auto desired = expected - 1;
-            while(ctr->compare_exchange_weak(expected, desired))
+            while(!ctr->compare_exchange_weak(expected, desired))
                 desired = expected - 1;
             if(desired == 0) { // I was the last user of *p
                delete p;
