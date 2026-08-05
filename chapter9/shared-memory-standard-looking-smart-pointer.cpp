@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/GzXPATXY5wNo6Q9h
+// also available live: https://wandbox.org/permlink/kGpNuTfcLiipLUnh
 
 //
 // OS API header file
