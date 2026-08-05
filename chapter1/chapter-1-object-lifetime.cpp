@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/DonyTvJAn7IGoNn0
+// also available live: https://wandbox.org/permlink/gLwnp8J1ctuQmben
 
 #include <string>
 #include <iostream>
@@ -10,7 +10,7 @@ struct X {
       std::cout << std::format("X::X({})\n", s);
    }
    ~X(){
-      std::cout << std::format("~X::X() for {}\n", s);
+      std::cout << std::format("X::~X() for {}\n", s);
    }
 };
 X glob { "glob" };
