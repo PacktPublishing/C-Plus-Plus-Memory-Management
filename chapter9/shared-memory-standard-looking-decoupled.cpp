@@ -161,7 +161,7 @@ public:
       auto i = distance(
          static_cast<char*>(mem), static_cast<char*>(p)
       );
-      take(i, i + n);
+      free(i, i + n);
    }
 };
 
