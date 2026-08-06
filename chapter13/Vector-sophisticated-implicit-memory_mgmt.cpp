@@ -19,9 +19,9 @@ public:
    using const_reference = const T&;
 private:
    struct deleter { // HERE
-      Vector& source;
+      Vector *source;
       void operator()(value_type* p) {
-         std::destroy(std::begin(source), std::end(source));
+         std::destroy(std::begin(*source), std::end(*source));
          std::free(static_cast<void*>(p));
       }
    };
@@ -47,13 +47,13 @@ public:
    const_iterator cend() const { return end(); }
    // HERE
    constexpr Vector()
-      : elems{ nullptr, deleter { *this } } {
+      : elems{ nullptr, deleter { this } } {
    }
    // HERE
    Vector(size_type n, const_reference init)
       : elems{
            static_cast<pointer>(std::malloc(n * sizeof(value_type))),
-           deleter{ *this }
+           deleter{ this }
       } {
       std::uninitialized_fill(begin(), begin() + n, init); // HERE
       nelems = cap = n; // HERE
@@ -62,22 +62,22 @@ public:
    Vector(const Vector& other)
       : elems{
            static_cast<pointer>(std::malloc(other.size() * sizeof(value_type))),
-           deleter{ *this }
+           deleter{ this }
       } {
       std::uninitialized_copy(other.begin(), other.end(), begin());
       nelems = cap = other.size(); // HERE
    }
    // HERE
    Vector(Vector&& other) noexcept
-      : elems{ std::exchange(other.elems.release()), deleter{ *this } },
-      nelems{ std::exchange(other.nelems, 0) },
-      cap{ std::exchange(other.cap, 0) } {
+      : elems{ std::exchange(other.elems.release()), deleter{ this } },
+        nelems{ std::exchange(other.nelems, 0) },
+        cap{ std::exchange(other.cap, 0) } {
    }
    // HERE
    Vector(std::initializer_list<T> src)
       : elems{
            static_cast<pointer>(std::malloc(src.size() * sizeof(value_type))),
-           deleter { *this }
+           deleter { this }
       } {
       std::uninitialized_copy(src.begin(), src.end(), begin());
       nelems = cap = src.size(); // HERE
@@ -85,13 +85,13 @@ public:
    // HERE
    ~Vector() = default;
    // ...
-   void swap(Vector& other) noexcept {
+   void swap(Vector &other) noexcept {
       using std::swap;
       swap(elems, other.elems); // HERE
       swap(nelems, other.nelems);
       swap(cap, other.cap);
    }
-   Vector& operator=(const Vector& other) {
+   Vector& operator=(const Vector &other) {
       Vector{ other }.swap(*this);
       return *this;
    }
@@ -145,8 +145,13 @@ public:
    // HERE
    void reserve(size_type new_cap) {
       if (new_cap <= capacity()) return;
-      std::unique_ptr<value_type[]> p{
-         static_cast<pointer>(std::malloc(new_cap * sizeof(T)))
+      std::unique_ptr<
+         value_type[],
+         decltype([](value_type* p) { std::free(p); })
+      > p{
+         static_cast<pointer>(
+            std::malloc(new_cap * sizeof(T))
+         )
       };
       if constexpr (std::is_nothrow_move_assignable_v<T>) {
          std::uninitialized_move(begin(), end(), p.get());
@@ -160,8 +165,14 @@ public:
    // HERE
    void resize(size_type new_cap) {
       if (new_cap <= capacity()) return;
-      std::unique_ptr<value_type[]> p =
-         static_cast<pointer>(std::malloc(new_cap * sizeof(T)));
+      std::unique_ptr<
+         value_type[],
+         decltype([](value_type* p) { std::free(p); })
+      > p{
+         static_cast<pointer>(
+            std::malloc(new_cap * sizeof(T))
+         )
+      };
       if constexpr (std::is_nothrow_move_assignable_v<T>) {
          std::uninitialized_move(begin(), end(), p.get());
       } else {
