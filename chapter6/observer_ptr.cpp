@@ -20,19 +20,19 @@ template <class T>
       const T* operator->() const noexcept {
          return p;
       }
-      constexpr bool operator==(const observer_ptr &autre) const {
-         return p == autre.p;
+      constexpr bool operator==(const observer_ptr &other) const {
+         return p == other.p;
       }
-      constexpr bool operator!=(const observer_ptr &autre) const {
-         return !(*this == autre);
+      constexpr bool operator!=(const observer_ptr &other) const {
+         return !(*this == other);
       }
       template <class U>
-         constexpr bool operator==(const observer_ptr<U> &autre) const {
-            return p == &*autre;
+         constexpr bool operator==(const observer_ptr<U> &other) const {
+            return p == &*other;
          }
       template <class U>
-         constexpr bool operator!=(const observer_ptr<U> &autre) const {
-            return !(*this == autre);
+         constexpr bool operator!=(const observer_ptr<U> &other) const {
+            return !(*this == other);
          }
       template <class U>
          constexpr bool operator==(const U *q) const {
@@ -42,15 +42,15 @@ template <class T>
          constexpr bool operator!=(const U *q) const {
             return !(*this == q);
          }
-      void swap(observer_ptr &autre) {
+      void swap(observer_ptr &other) {
          using std::swap;
-         swap(p, autre.p);
+         swap(p, other.p);
       }
       constexpr operator bool() const noexcept {
          return p != nullptr;
       }
-      observer_ptr(observer_ptr &&autre) : p{ autre.p } {
-         autre.p = nullptr;
+      observer_ptr(observer_ptr &&other) : p{ other.p } {
+         other.p = nullptr;
       }
       observer_ptr& operator=(observer_ptr &&other) { // unsafe for swap(a,b)
          assert(this != &other);
@@ -67,4 +67,5 @@ namespace std {
       a.swap(b);
    }
 }
+
 #endif
