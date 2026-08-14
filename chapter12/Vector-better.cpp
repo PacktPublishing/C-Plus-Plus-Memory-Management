@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/6GkCH1abSp1JMroz
+// also available live: https://wandbox.org/permlink/ZTWbNWzauMqhfXXQ
 
 #include <cstddef>
 #include <algorithm>
@@ -217,7 +217,7 @@ public:
       iterator pos_ = const_cast<iterator>(pos);
       if (pos_ == end()) return pos_;
       std::copy(std::next(pos_), end(), pos_);
-      *std::prev(end()) = {};
+      std::destroy_at(std::prev(end()));
       --nelems;
       return pos_;
    }

@@ -1,4 +1,4 @@
-// also available live: https://wandbox.org/permlink/u4poOOY4mARuoWxX
+// also available live: https://wandbox.org/permlink/0FF1Wx9t074MJ023
 
 #include <cstddef>
 #include <algorithm>
@@ -200,13 +200,15 @@ public:
          reserve(capacity() + n - remaining);
          pos_ = std::next(begin(), index);
       }
-      auto m = std::distance(std::next(pos_, n), end());
-      if (m > 0) {
-         std::uninitialized_copy(pos_ + n, end(), end() + n - m);
-         std::uninitialized_copy(pos_ + m, pos_ + n, end());
-         std::copy_backward(pos_, pos_ + m, pos_ + n + m);
+      if (auto m = std::distance(std::next(pos_, n), end()); m > 0) {
+         std::uninitialized_copy(end() - n, end(), end());
+         std::copy_backward(pos_, pos_ + m, end());
+         std::copy(first, last, pos_);
+      } else {
+         std::uninitialized_copy(pos_, end(), end() + n - (n + m));
+         std::uninitialized_copy(first + n + m, last, end());
+         std::copy(first, first + n + m, pos_);
       }
-      std::copy(first, last, pos_);
       nelems += n;
       return pos_;
    }
@@ -214,7 +216,7 @@ public:
       iterator pos_ = const_cast<iterator>(pos);
       if (pos_ == end()) return pos_;
       std::copy(std::next(pos_), end(), pos_);
-      *std::prev(end()) = {};
+      std::destroy_at(std::prev(end()));
       --nelems;
       return pos_;
    }
