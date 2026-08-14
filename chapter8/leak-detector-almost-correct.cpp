@@ -25,7 +25,7 @@ public:
    // n bytes were deallocated
    void give_back(std::size_t n) { cur -= n; }
    // number of bytes currently allocated
-   std::size_t how_much() const { return cur.load(); }
+   auto how_much() const { return cur.load(); }
 };
 // allocation operators (free functions)
 void *operator new(std::size_t);
