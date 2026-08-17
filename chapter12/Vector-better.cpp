@@ -167,7 +167,10 @@ public:
    }
    // HERE
    void resize(size_type new_cap) {
-      if(new_cap <= capacity()) return;
+      if (new_cap <= capacity()) {
+         nelems = new_cap;
+         return;
+      }
       auto p = static_cast<pointer>(std::malloc(new_cap * sizeof(T)));
       if constexpr(std::is_nothrow_move_assignable_v<T>) {
          std::uninitialized_move(begin(), end(), p);         
@@ -260,4 +263,9 @@ int main() {
    // -2,-3,2,3,5,7,11,-2,-3,-4
    std::cout << "Size: " << v1.size() << ", capacity: " << v1.capacity() << '\n'
       << v1 << '\n';
+   v1.resize(8);
+   // Size: 8, capacity: 11
+   // -2,-3,2,3,5,7,11,-2
+   std::cout << "Size: " << v1.size() << ", capacity: " << v1.capacity() << '\n'
+       << v1 << '\n';
 }
